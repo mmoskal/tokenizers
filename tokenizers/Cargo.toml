@@ -72,7 +72,7 @@ esaxx-rs = { version = "0.1", default-features = false, features=[]}
 monostate = "0.1.5"
 
 [features]
-default = ["progressbar", "cli", "onig", "esaxx_fast"]
+default = ["progressbar", "cli", "onig", "esaxx_fast", "http"]
 esaxx_fast = ["esaxx-rs/cpp"]
 progressbar = ["indicatif"]
 http = ["hf-hub"]
