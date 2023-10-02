@@ -103,6 +103,10 @@ impl Decoder for Replace {
             })
             .collect()
     }
+
+    fn decode_chain_raw(&self, tokens: Vec<String>) -> Result<Vec<String>> {
+        self.decode_chain(tokens)
+    }
 }
 
 #[cfg(test)]

@@ -157,6 +157,10 @@ pub trait Decoder {
         Ok(results.join(""))
     }
     fn decode_chain(&self, tokens: Vec<String>) -> Result<Vec<String>>;
+    fn decode_chain_raw(&self, tokens: Vec<String>) -> Result<Vec<String>> {
+        // by default, don't do anything
+        Ok(tokens)
+    }
 }
 
 /// A `Trainer` has the responsibility to train a model. We feed it with lines/sentences
@@ -833,6 +837,37 @@ where
             decoder.decode(tokens)
         } else {
             Ok(tokens.join(" "))
+        }
+    }
+
+    /// Decode the given ids, to binary, possibly partial UTF8 buffer
+    pub fn decode_as_bytes(&self, ids: &[u32], skip_special_tokens: bool) -> Result<Vec<u8>> {
+        let tokens = ids
+            .iter()
+            .filter_map(|id| {
+                self.added_vocabulary
+                    .id_to_token(*id, &self.model)
+                    .filter(|token| {
+                        !skip_special_tokens || !self.added_vocabulary.is_special_token(token)
+                    })
+            })
+            .collect::<Vec<_>>();
+
+        if let Some(decoder) = &self.decoder {
+            Ok(decoder
+                .decode_chain_raw(tokens)?
+                .iter()
+                .flat_map(|token| {
+                    if token.len() == 6 && token.starts_with("<0x") && token.ends_with('>') {
+                        if let Ok(byte) = u8::from_str_radix(&token[3..5], 16) {
+                            return vec![byte];
+                        }
+                    }
+                    token.as_bytes().to_vec()
+                })
+                .collect::<Vec<_>>())
+        } else {
+            Ok(tokens.join(" ").as_bytes().into())
         }
     }
 }

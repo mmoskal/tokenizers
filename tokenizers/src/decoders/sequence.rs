@@ -22,6 +22,12 @@ impl Decoder for Sequence {
         }
         Ok(tokens)
     }
+    fn decode_chain_raw(&self, mut tokens: Vec<String>) -> Result<Vec<String>> {
+        for decoder in &self.decoders {
+            tokens = decoder.decode_chain_raw(tokens)?;
+        }
+        Ok(tokens)
+    }
 }
 
 #[cfg(test)]

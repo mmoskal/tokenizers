@@ -1,6 +1,7 @@
 use std::collections::{HashMap, HashSet};
 
 use crate::utils::SysRegex;
+use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 
 use crate::tokenizer::{
@@ -105,6 +106,22 @@ impl ByteLevel {
         self.use_regex = v;
         self
     }
+
+    fn decode_to_bytes(&self, tokens: Vec<String>) -> Vec<u8> {
+        tokens
+            .into_iter()
+            .flat_map(|t| {
+                t.chars()
+                    .try_fold(vec![], |mut acc, c| {
+                        CHAR_BYTES.get(&c).map(|b| {
+                            acc.push(*b);
+                            acc
+                        })
+                    })
+                    .unwrap_or_else(|| t.as_bytes().to_vec())
+            })
+            .collect::<Vec<u8>>()
+    }
 }
 
 /// As a `PreTokenizer`, `ByteLevel` is in charge of transforming all the unicode characters into
@@ -151,20 +168,15 @@ impl PreTokenizer for ByteLevel {
 /// as String.
 impl Decoder for ByteLevel {
     fn decode_chain(&self, tokens: Vec<String>) -> Result<Vec<String>> {
-        let toks = tokens
-            .into_iter()
-            .flat_map(|t| {
-                t.chars()
-                    .try_fold(vec![], |mut acc, c| {
-                        CHAR_BYTES.get(&c).map(|b| {
-                            acc.push(*b);
-                            acc
-                        })
-                    })
-                    .unwrap_or_else(|| t.as_bytes().to_vec())
-            })
-            .collect::<Vec<u8>>();
+        let toks = self.decode_to_bytes(tokens);
         Ok(vec![String::from_utf8_lossy(&toks).to_string()])
+    }
+    fn decode_chain_raw(&self, tokens: Vec<String>) -> Result<Vec<String>> {
+        let toks = self.decode_to_bytes(tokens);
+        match String::from_utf8(toks.clone()) {
+            Ok(s) => Ok(vec![s]),
+            Err(_) => Ok(toks.iter().map(|c| format!("<0x{:02x}>", c)).collect_vec()),
+        }
     }
 }
 

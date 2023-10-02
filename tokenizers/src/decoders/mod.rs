@@ -54,6 +54,21 @@ impl Decoder for DecoderWrapper {
             Self::Fuse(bf) => bf.decode_chain(tokens),
         }
     }
+
+    fn decode_chain_raw(&self, tokens: Vec<String>) -> Result<Vec<String>> {
+        match self {
+            Self::BPE(bpe) => bpe.decode_chain_raw(tokens),
+            Self::ByteLevel(bl) => bl.decode_chain_raw(tokens),
+            Self::Metaspace(ms) => ms.decode_chain_raw(tokens),
+            Self::WordPiece(wp) => wp.decode_chain_raw(tokens),
+            Self::CTC(ctc) => ctc.decode_chain_raw(tokens),
+            Self::Sequence(seq) => seq.decode_chain_raw(tokens),
+            Self::Replace(seq) => seq.decode_chain_raw(tokens),
+            Self::ByteFallback(bf) => bf.decode_chain_raw(tokens),
+            Self::Strip(bf) => bf.decode_chain_raw(tokens),
+            Self::Fuse(bf) => bf.decode_chain_raw(tokens),
+        }
+    }
 }
 
 impl_enum_from!(BPEDecoder, DecoderWrapper, BPE);
