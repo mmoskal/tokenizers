@@ -78,7 +78,9 @@ fn binary(hf_id: &str) -> Result<()> {
             info.eos_token = *id;
         }
     }
-    std::fs::write("toks.json", serde_json::to_string_pretty(&info)?)?;
+    let str = serde_json::to_string_pretty(&info)?;
+    println!("write JSON, {} bytes", str.as_bytes().len());
+    std::fs::write("toks.json", str)?;
     Ok(())
 }
 
