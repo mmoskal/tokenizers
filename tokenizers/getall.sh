@@ -49,6 +49,7 @@ gpt2:gpt2
 microsoft/phi-1_5:phi
 mosaicml/mpt-7b:mpt
 tiiuae/falcon-7b:falcon
+mistralai/Mistral-7B-Instruct-v0.2:mistral
   '
 
 #rm -rf toks
